@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
+let renderer, scene, camera;
 function init() {
     // Setup three js scene, camera and renderer
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    scene = new THREE.Scene()
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
     // renderer
-    const renderer = new THREE.WebGLRenderer({
+    renderer = new THREE.WebGLRenderer({
         canvas: document.getElementById('bg')
     });
 
@@ -21,14 +22,9 @@ function init() {
     scene.add(gridHelper);
 
     renderer.render(scene, camera);
-    return { renderer, scene, camera };
 }
 
-const { renderer, scene, camera } = init();
-
-// Orbit controls
-const controls = new OrbitControls(camera, renderer.domElement);
-
+init();
 
 // create cube geometry
 const pieceSize = 3;
@@ -68,7 +64,7 @@ for (let i = 0; i < NUMBER_OF_PIECES; i++) {
     cubeList.push(new THREE.Mesh(pieceGeometry, material));
 }
 
-const OFFSET = pieceSize;
+const OFFSET = 0;
 
 cubeList.forEach((cube, index) => {
     let z = Math.floor(index / 9);
@@ -86,15 +82,15 @@ cubeList.forEach((cube, index) => {
     cube.add(line);
 })
 
-
+// Orbit controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(OFFSET + 1 * pieceSize, OFFSET + 1 * pieceSize, OFFSET + 1 * pieceSize);
 
 // ANIMATION LOOP
 function animate() {
     requestAnimationFrame(animate);
 
     // update the scene
-    // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.02;
     controls.update();
 
     // render the updated scene
