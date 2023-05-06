@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 function init() {
     // Setup three js scene, camera and renderer
@@ -15,14 +16,22 @@ function init() {
 
     camera.position.setZ(30);
 
+    // add helpers
+    const gridHelper = new THREE.GridHelper(200, 50);
+    scene.add(gridHelper);
+
     renderer.render(scene, camera);
     return { renderer, scene, camera };
 }
 
 const { renderer, scene, camera } = init();
 
+// Orbit controls
+const controls = new OrbitControls(camera, renderer.domElement);
+
+
 // create cube geometry
-const pieceSize = 5;
+const pieceSize = 3;
 const pieceGeometry = new THREE.BoxGeometry(pieceSize, pieceSize, pieceSize).toNonIndexed();
 const material = new THREE.MeshBasicMaterial({ vertexColors: true });
 
@@ -53,21 +62,42 @@ rubiksColorsHex.forEach(colorHex => {
 // set the color attribute to color the whole cube
 pieceGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-const cube = new THREE.Mesh(pieceGeometry, material);
-scene.add(cube);
+const NUMBER_OF_PIECES = 27;
+const cubeList = [];
+for (let i = 0; i < NUMBER_OF_PIECES; i++) {
+    cubeList.push(new THREE.Mesh(pieceGeometry, material));
+}
 
-// add border to edges of the cube
-const edges = new THREE.EdgesGeometry(pieceGeometry);
-const edgeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-const line = new THREE.LineSegments(edges, edgeMaterial);
-cube.add(line);
+const OFFSET = pieceSize;
+
+cubeList.forEach((cube, index) => {
+    let z = Math.floor(index / 9);
+    let y = index % 3;
+    let x = Math.floor(index / 3) % 3;
+    cube.position.setX(OFFSET + x * pieceSize);
+    cube.position.setY(OFFSET + y * pieceSize);
+    cube.position.setZ(OFFSET + z * pieceSize);
+    scene.add(cube);
+
+    // add border to edges of the cube
+    const edges = new THREE.EdgesGeometry(pieceGeometry);
+    const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const line = new THREE.LineSegments(edges, edgeMaterial);
+    cube.add(line);
+})
+
 
 
 // ANIMATION LOOP
 function animate() {
     requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.02;
+
+    // update the scene
+    // cube.rotation.x += 0.01;
+    // cube.rotation.y += 0.02;
+    controls.update();
+
+    // render the updated scene
     renderer.render(scene, camera);
 }
 
