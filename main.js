@@ -30,13 +30,17 @@ const X_AXIS = new THREE.Vector3(1, 0, 0);
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
 
+const NEG_X_AXIS = new THREE.Vector3(-1, 0, 0);
+const NEG_Y_AXIS = new THREE.Vector3(0, -1, 0);
+const NEG_Z_AXIS = new THREE.Vector3(0, 0, -1);
+
 const layerAxis = {
     'U': Y_AXIS,
-    'D': Y_AXIS,
     'R': X_AXIS,
-    'L': X_AXIS,
     'F': Z_AXIS,
-    'B': Z_AXIS,
+    'L': NEG_X_AXIS,
+    'D': NEG_Y_AXIS,
+    'B': NEG_Z_AXIS,
 };
 
 const layerCornerRotations = {
@@ -51,7 +55,31 @@ const layerCornerRotations = {
         [2, 2, 0],
         [2, 0, 0],
         [2, 0, 2]
-    ]
+    ],
+    'L': [
+        [0, 0, 0],
+        [0, 2, 0],
+        [0, 2, 2],
+        [0, 0, 2]
+    ],
+    'D': [
+        [0, 0, 0],
+        [0, 0, 2],
+        [2, 0, 2],
+        [2, 0, 0]
+    ],
+    'F': [
+        [0, 2, 2],
+        [2, 2, 2],
+        [2, 0, 2],
+        [0, 0, 2]
+    ],
+    'B': [
+        [2, 2, 0],
+        [0, 2, 0],
+        [0, 0, 0],
+        [2, 0, 0]
+    ],
 };
 
 const layerEdgeRotations = {
@@ -60,7 +88,20 @@ const layerEdgeRotations = {
     ],
     'R': [
         [2, 2, 1], [2, 1, 0], [2, 0, 1], [2, 1, 2]
-    ]
+    ],
+    'F': [
+        [1, 2, 2], [2, 1, 2], [1, 0, 2], [0, 1, 2]
+    ],
+    'B': [
+        [1, 2, 0], [0, 1, 0], [1, 0, 0], [2, 1, 0]
+    ],
+    'D': [
+        [1, 0, 0], [0, 0, 1], [1, 0, 2], [2, 0, 1]
+    ],
+    'L': [
+        [0, 2, 1], [0, 1, 2], [0, 0, 1], [0, 1, 0]
+    ],
+
 }
 
 // Rubik's colors matrix
@@ -175,17 +216,6 @@ THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
 
 }();
 
-/**
- * Rotation of elements
- * E.g.
- * U moves for corners
- *      [-1,1,-1] -> [1,1,-1] -> [1,1,1] -> [-1,1,1]
- * U moves for edges
- *      [0,1,-1] -> [1,1,0] -> [0,1,1] -> [-1,1,0]
- * R moves for corners
- *      
- */
-
 function moveLayer(layer, clockwise = true) {
     const pieceCoors = layerPieceCoordinates[layer]
 
@@ -250,14 +280,11 @@ function moveLayer(layer, clockwise = true) {
 }
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'u') {
-        moveLayer('U');
-    } else if (e.key === 'r') {
-        moveLayer('R');
-    } else if (e.key === 'U') {
-        moveLayer('U', false);
-    } else if (e.key === 'R') {
-        moveLayer('R', false);
+    // console.log(e.key.toUpperCase())
+    if (Object.keys(layerAxis).some(val => val == e.key.toUpperCase())) {
+        // console.log('Valid move');
+        const upperCaseKey = e.key.toUpperCase();
+        moveLayer(upperCaseKey, upperCaseKey !== e.key);
     }
 })
 
