@@ -22,8 +22,46 @@ function init() {
 
 init();
 
-// create cube geometry
-const pieceSize = 3;
+// Constants
+const PIECE_SIZE = 3;
+const ORIGIN = new THREE.Vector3(0, 0, 0);
+
+const X_AXIS = new THREE.Vector3(1, 0, 0);
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+
+const layerAxis = {
+    'U': Y_AXIS,
+    'D': Y_AXIS,
+    'R': X_AXIS,
+    'L': X_AXIS,
+    'F': Z_AXIS,
+    'B': Z_AXIS,
+};
+
+const layerCornerRotations = {
+    'U': [
+        [0, 2, 0],
+        [2, 2, 0],
+        [2, 2, 2],
+        [0, 2, 2]
+    ],
+    'R': [
+        [2, 2, 2],
+        [2, 2, 0],
+        [2, 0, 0],
+        [2, 0, 2]
+    ]
+};
+
+const layerEdgeRotations = {
+    'U': [
+        [1, 2, 0], [2, 2, 1], [1, 2, 2], [0, 2, 1]
+    ],
+    'R': [
+        [2, 2, 1], [2, 1, 0], [2, 0, 1], [2, 1, 2]
+    ]
+}
 
 // Rubik's colors matrix
 const rubiksColorsHex = [
@@ -100,8 +138,8 @@ for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
         for (let z = -1; z <= 1; z++) {
             const colorsArray = getColorsArray(rubiksColorsHex, insideColor, x, y, z);
-            const piece = new Piece(pieceSize, colorsArray, insideColor);
-            piece.setPosition(x * pieceSize, y * pieceSize, z * pieceSize);
+            const piece = new Piece(PIECE_SIZE, colorsArray, insideColor);
+            piece.setPosition(x * PIECE_SIZE, y * PIECE_SIZE, z * PIECE_SIZE);
 
             scene.add(piece.cube);
             cubeList[x + 1][y + 1][z + 1] = piece;
@@ -148,100 +186,80 @@ THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
  *      
  */
 
+function moveLayer(layer, clockwise = true) {
+    const pieceCoors = layerPieceCoordinates[layer]
+
+    const axis = layerAxis[layer];
+    const angle = THREE.MathUtils.degToRad(90 * (clockwise ? -1 : 1));
+    // rotate the selected pieces in UI
+    pieceCoors.forEach(([x, y, z]) => {
+        cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(ORIGIN, axis, angle)
+    })
+    // console.log(pieces)
+    // move around the data in the cubeList
+
+    // rotate corners in the layer move
+    const [c1, c2, c3, c4] = layerCornerRotations[layer];
+    let [w, x, y, z] = [
+        cubeList[c1[0]][c1[1]][c1[2]],
+        cubeList[c2[0]][c2[1]][c2[2]],
+        cubeList[c3[0]][c3[1]][c3[2]],
+        cubeList[c4[0]][c4[1]][c4[2]]
+    ];
+
+    if (clockwise) {
+        [
+            cubeList[c1[0]][c1[1]][c1[2]],
+            cubeList[c2[0]][c2[1]][c2[2]],
+            cubeList[c3[0]][c3[1]][c3[2]],
+            cubeList[c4[0]][c4[1]][c4[2]]
+        ] = [z, w, x, y];
+    } else {
+        [
+            cubeList[c1[0]][c1[1]][c1[2]],
+            cubeList[c2[0]][c2[1]][c2[2]],
+            cubeList[c3[0]][c3[1]][c3[2]],
+            cubeList[c4[0]][c4[1]][c4[2]]
+        ] = [x, y, z, w];
+    }
+
+    // rotate edges in layer move
+    const [e1, e2, e3, e4] = layerEdgeRotations[layer];
+    [w, x, y, z] = [
+        cubeList[e1[0]][e1[1]][e1[2]],
+        cubeList[e2[0]][e2[1]][e2[2]],
+        cubeList[e3[0]][e3[1]][e3[2]],
+        cubeList[e4[0]][e4[1]][e4[2]]
+    ];
+
+    if (clockwise) {
+        [
+            cubeList[e1[0]][e1[1]][e1[2]],
+            cubeList[e2[0]][e2[1]][e2[2]],
+            cubeList[e3[0]][e3[1]][e3[2]],
+            cubeList[e4[0]][e4[1]][e4[2]]
+        ] = [z, w, x, y];
+    } else {
+        [
+            cubeList[e1[0]][e1[1]][e1[2]],
+            cubeList[e2[0]][e2[1]][e2[2]],
+            cubeList[e3[0]][e3[1]][e3[2]],
+            cubeList[e4[0]][e4[1]][e4[2]]
+        ] = [x, y, z, w];
+    }
+}
+
 document.addEventListener('keydown', e => {
-    if (e.key.toUpperCase() === 'U') {
-        const pieceCoors = layerPieceCoordinates[e.key.toUpperCase()]
-
-        const axis = new THREE.Vector3(0, -1, 0);
-        const point = new THREE.Vector3(0, 0, 0);
-        const angle = THREE.MathUtils.degToRad(90);
-        // rotate the selected pieces in UI
-        pieceCoors.forEach(([x, y, z]) => {
-            cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(point, axis, angle)
-        })
-        // console.log(pieces)
-        // move around the data in the cubeList
-
-        // rotate corners in U move
-        let [w, x, y, z] = [
-            cubeList[0][2][0],
-            cubeList[2][2][0],
-            cubeList[2][2][2],
-            cubeList[0][2][2]
-        ];
-
-        [
-            cubeList[0][2][0],
-            cubeList[2][2][0],
-            cubeList[2][2][2],
-            cubeList[0][2][2]
-        ] = [z, w, x, y];
-
-        // rotate edges in U move
-        [w, x, y, z] = [
-            cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]
-        ];
-
-        [
-            cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]
-        ] = [z, w, x, y];
-        // rotate(cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]);
-        // console.log(cubeList.flat().flat().map(piece => ({ id: piece.cube.uuid })));
-        // console.log(cubeList);
-    } else if (e.key.toUpperCase() === 'R') {
-        const pieceCoors = layerPieceCoordinates[e.key.toUpperCase()]
-
-        const axis = new THREE.Vector3(-1, 0, 0);
-        const point = new THREE.Vector3(0, 0, 0);
-        const angle = THREE.MathUtils.degToRad(90);
-        // rotate the selected pieces in UI
-        pieceCoors.forEach(([x, y, z]) => {
-            cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(point, axis, angle)
-        })
-        // console.log(pieces)
-        // move around the data in the cubeList
-
-        // rotate corners in R move
-        let [w, x, y, z] = [
-            cubeList[2][2][2],
-            cubeList[2][2][0],
-            cubeList[2][0][0],
-            cubeList[2][0][2]
-        ];
-
-        [
-            cubeList[2][2][2],
-            cubeList[2][2][0],
-            cubeList[2][0][0],
-            cubeList[2][0][2]
-        ] = [z, w, x, y];
-
-        // // rotate edges in R move
-        [w, x, y, z] = [
-            cubeList[2][2][1], cubeList[2][1][0], cubeList[2][0][1], cubeList[2][1][2]
-        ];
-
-        [
-            cubeList[2][2][1], cubeList[2][1][0], cubeList[2][0][1], cubeList[2][1][2]
-        ] = [z, w, x, y];
+    if (e.key === 'u') {
+        moveLayer('U');
+    } else if (e.key === 'r') {
+        moveLayer('R');
+    } else if (e.key === 'U') {
+        moveLayer('U', false);
+    } else if (e.key === 'R') {
+        moveLayer('R', false);
     }
 })
-
-// Function to make a move on the cube
-/**
- * f(move):
- *      pieces = getAllRotatingPieces(cubeList, move)
- *      // rotate in 3d
- *      rotationParent = // create a new invisible mesh with correct rotation and orientation
- *      // then add all pieces to be moved in the rotationParent
- *      pieces.forEach(piece => rotationParent.add(piece))
- *      // rotate the parent
- *      rotateParent(parent, move)
- *      pieces.forEach(piece => scene.add(piece))
- *      
- *      updatePieceMatrix(cubeList, move);
- */
-
 
 // ANIMATION LOOP
 function animate() {
