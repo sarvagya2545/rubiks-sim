@@ -43,6 +43,40 @@ const cubeList = [
     [[], [], []]
 ];
 
+// pieces of layers
+const layerPieceCoordinates = {
+    'U': [
+        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
+        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
+        [-1, 1, 1], [0, 1, 1], [1, 1, 1]
+    ],
+    'D': [
+        [-1, -1, -1], [0, -1, -1], [1, -1, -1],
+        [-1, -1, 0], [0, -1, 0], [1, -1, 0],
+        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
+    ],
+    'R': [
+        [1, -1, -1], [1, 0, -1], [1, 1, -1],
+        [1, -1, 0], [1, 0, 0], [1, 1, 0],
+        [1, -1, 1], [1, 0, 1], [1, 1, 1]
+    ],
+    'L': [
+        [-1, -1, -1], [-1, 0, -1], [-1, 1, -1],
+        [-1, -1, 0], [-1, 0, 0], [-1, 1, 0],
+        [-1, -1, 1], [-1, 0, 1], [-1, 1, 1]
+    ],
+    'F': [
+        [-1, 1, 1], [0, 1, 1], [1, 1, 1],
+        [-1, 0, 1], [0, 0, 1], [1, 0, 1],
+        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
+    ],
+    'B': [
+        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
+        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
+        [-1, -1, -1], [0, -1, -1], [1, -1, -1]
+    ]
+}
+
 // function to remove invisible inside colors from the piece
 function getColorsArray(rubiksColorsHex, insideColor, x, y, z) {
     // +x => R, -x => L
@@ -71,7 +105,6 @@ for (let x = -1; x <= 1; x++) {
 
             scene.add(piece.cube);
             cubeList[x + 1][y + 1][z + 1] = piece;
-            // cubeList.push(piece);
         }
     }
 }
@@ -81,6 +114,7 @@ console.log(cubeList);
 // Orbit controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
+// utility to debug stuff
 function setCubeColor(mesh, colorVal) {
     const positionAttribute = mesh.geometry.getAttribute('position');
     const colorArray = [];
@@ -93,29 +127,45 @@ function setCubeColor(mesh, colorVal) {
     mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorArray, 3))
 }
 
-// setCubeColor(cubeList[0][0][0].cube, 0x000000);
+THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
 
-// Move controls
-// document.addEventListener('keydown', e => {
-//     let criteria = function (index) {
-//         return index % 3 == 0;
-//     };
+    // rotate object around axis in world space (the axis passes through point)
+    // axis is assumed to be normalized
+    // assumes object does not have a rotated parent
 
-//     if (e.key == 'r') {
-//         console.log('r pressed')
-//         cubeList.forEach((cube, index) => {
-//             if (criteria(index)) {
-//                 setCubeColor(cube, "red");
-//             }
-//         })
-//     } else if (e.key == 's') {
-//         cubeList.forEach((cube, index) => {
-//             if (criteria(index)) {
-//                 cube.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-//             }
-//         })
-//     }
-// })
+    let q = new THREE.Quaternion();
+
+    return function rotateAroundWorldAxis(point, axis, angle) {
+
+        q.setFromAxisAngle(axis, angle);
+
+        this.applyQuaternion(q);
+
+        this.position.sub(point);
+        this.position.applyQuaternion(q);
+        this.position.add(point);
+
+        return this;
+
+    }
+
+}();
+
+document.addEventListener('keydown', e => {
+    if (e.key.toUpperCase() === 'U') {
+        const pieceCoors = layerPieceCoordinates[e.key.toUpperCase()]
+
+        const axis = new THREE.Vector3(0, 1, 0);
+        const point = new THREE.Vector3(0, 0, 0);
+        const angle = THREE.MathUtils.degToRad(90);
+        pieceCoors.forEach(([x, y, z]) => {
+            cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(point, axis, angle)
+        })
+        // console.log(pieces)
+        // rotate the selected pieces in UI
+        // move around the data in the cubeList
+    }
+})
 
 // Function to make a move on the cube
 /**
