@@ -7,8 +7,8 @@ class Piece {
         this.borderColor = borderColor;
 
         // create cube geometry
-        this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size).toNonIndexed();
-        this.material = new THREE.MeshBasicMaterial({ vertexColors: true });
+        let geometry = new THREE.BoxGeometry(this.size, this.size, this.size).toNonIndexed();
+        let material = new THREE.MeshBasicMaterial({ vertexColors: true });
 
         // Add colors to the created cube
         const pieceColors = [];
@@ -27,13 +27,25 @@ class Piece {
         });
 
         // set the color attribute to color the whole cube
-        this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(pieceColors, 3));
-        this.cube = new THREE.Mesh(this.geometry, this.material);
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(pieceColors, 3));
+        this.cube = new THREE.Mesh(geometry, material);
 
         // add border to edges of the cube
-        const edges = new THREE.EdgesGeometry(this.geometry);
+        const edges = new THREE.EdgesGeometry(geometry);
         const edgeMaterial = new THREE.LineBasicMaterial({ color: this.borderColor });
         const line = new THREE.LineSegments(edges, edgeMaterial);
         this.cube.add(line);
     }
+
+    getPiece() {
+        return this.cube;
+    }
+
+    setPosition(x, y, z) {
+        this.cube.position.setX(x);
+        this.cube.position.setY(y);
+        this.cube.position.setZ(z);
+    }
 }
+
+export default Piece;

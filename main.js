@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import Piece from './objects/Piece';
 
 let renderer, scene, camera;
 function init() {
@@ -16,11 +17,6 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     camera.position.setZ(30);
-
-    // add helpers
-    const gridHelper = new THREE.GridHelper(200, 50);
-    scene.add(gridHelper);
-
     renderer.render(scene, camera);
 }
 
@@ -28,63 +24,114 @@ init();
 
 // create cube geometry
 const pieceSize = 3;
-const pieceGeometry = new THREE.BoxGeometry(pieceSize, pieceSize, pieceSize).toNonIndexed();
-const material = new THREE.MeshBasicMaterial({ vertexColors: true });
 
-// Add colors to the created cube
-const colors = [];
-const color = new THREE.Color();
+// Rubik's colors matrix
 const rubiksColorsHex = [
-    0xffffff,
-    0xffd500,
-    0x009b48,
-    0x0046ad,
-    0xb71234,
-    0xff5800
+    0xb71234, // R
+    0xff5800, // L
+    0xffffff, // U
+    0xffd500, // D
+    0x009b48, // F
+    0x0046ad  // B
+];
+const insideColor = 0x000000;
+
+// initialize 3x3 cube
+const cubeList = [
+    [[], [], []],
+    [[], [], []],
+    [[], [], []]
 ];
 
-rubiksColorsHex.forEach(colorHex => {
-    color.setHex(colorHex);
+// function to remove invisible inside colors from the piece
+function getColorsArray(rubiksColorsHex, insideColor, x, y, z) {
+    // +x => R, -x => L
+    // +y => U, -y => D
+    // +z => F, -z => B
+    // [R, L, U, D, F, B]
+    const colors = [...rubiksColorsHex];
+    if (x >= 0) colors[1] = insideColor;
+    if (x <= 0) colors[0] = insideColor;
 
-    // each face is made of 2 triangles with diff vertices
-    // fill both triangle faces with the same color
-    const colorVectorRGB = [color.r, color.g, color.b]
-    const triangleColor = Array(3).fill(colorVectorRGB).flat();
+    if (y >= 0) colors[3] = insideColor;
+    if (y <= 0) colors[2] = insideColor;
 
-    // push 2 colored triangles to render a face
-    colors.push(...triangleColor, ...triangleColor);
-});
+    if (z >= 0) colors[5] = insideColor;
+    if (z <= 0) colors[4] = insideColor;
 
-// set the color attribute to color the whole cube
-pieceGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-const NUMBER_OF_PIECES = 27;
-const cubeList = [];
-for (let i = 0; i < NUMBER_OF_PIECES; i++) {
-    cubeList.push(new THREE.Mesh(pieceGeometry, material));
+    return colors;
 }
 
-const OFFSET = 0;
+for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+        for (let z = -1; z <= 1; z++) {
+            const colorsArray = getColorsArray(rubiksColorsHex, insideColor, x, y, z);
+            const piece = new Piece(pieceSize, colorsArray, insideColor);
+            piece.setPosition(x * pieceSize, y * pieceSize, z * pieceSize);
 
-cubeList.forEach((cube, index) => {
-    let z = Math.floor(index / 9);
-    let y = index % 3;
-    let x = Math.floor(index / 3) % 3;
-    cube.position.setX(OFFSET + x * pieceSize);
-    cube.position.setY(OFFSET + y * pieceSize);
-    cube.position.setZ(OFFSET + z * pieceSize);
-    scene.add(cube);
+            scene.add(piece.cube);
+            cubeList[x + 1][y + 1][z + 1] = piece;
+            // cubeList.push(piece);
+        }
+    }
+}
 
-    // add border to edges of the cube
-    const edges = new THREE.EdgesGeometry(pieceGeometry);
-    const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-    const line = new THREE.LineSegments(edges, edgeMaterial);
-    cube.add(line);
-})
+console.log(cubeList);
 
 // Orbit controls
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(OFFSET + 1 * pieceSize, OFFSET + 1 * pieceSize, OFFSET + 1 * pieceSize);
+
+function setCubeColor(mesh, colorVal) {
+    const positionAttribute = mesh.geometry.getAttribute('position');
+    const colorArray = [];
+    for (let i = 0; i < positionAttribute.count; i += 3) {
+        const color = new THREE.Color();
+        color.set(colorVal);
+        colorArray.push(...new Array(3).fill([color.r, color.b, color.g]).flat());
+    }
+
+    mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorArray, 3))
+}
+
+// setCubeColor(cubeList[0][0][0].cube, 0x000000);
+
+// Move controls
+// document.addEventListener('keydown', e => {
+//     let criteria = function (index) {
+//         return index % 3 == 0;
+//     };
+
+//     if (e.key == 'r') {
+//         console.log('r pressed')
+//         cubeList.forEach((cube, index) => {
+//             if (criteria(index)) {
+//                 setCubeColor(cube, "red");
+//             }
+//         })
+//     } else if (e.key == 's') {
+//         cubeList.forEach((cube, index) => {
+//             if (criteria(index)) {
+//                 cube.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+//             }
+//         })
+//     }
+// })
+
+// Function to make a move on the cube
+/**
+ * f(move):
+ *      pieces = getAllRotatingPieces(cubeList, move)
+ *      // rotate in 3d
+ *      rotationParent = // create a new invisible mesh with correct rotation and orientation
+ *      // then add all pieces to be moved in the rotationParent
+ *      pieces.forEach(piece => rotationParent.add(piece))
+ *      // rotate the parent
+ *      rotateParent(parent, move)
+ *      pieces.forEach(piece => scene.add(piece))
+ *      
+ *      updatePieceMatrix(cubeList, move);
+ */
+
 
 // ANIMATION LOOP
 function animate() {
