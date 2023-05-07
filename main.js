@@ -109,24 +109,10 @@ for (let x = -1; x <= 1; x++) {
     }
 }
 
-console.log(cubeList);
-
 // Orbit controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
-// utility to debug stuff
-function setCubeColor(mesh, colorVal) {
-    const positionAttribute = mesh.geometry.getAttribute('position');
-    const colorArray = [];
-    for (let i = 0; i < positionAttribute.count; i += 3) {
-        const color = new THREE.Color();
-        color.set(colorVal);
-        colorArray.push(...new Array(3).fill([color.r, color.b, color.g]).flat());
-    }
-
-    mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorArray, 3))
-}
-
+// create a new method to rotate a face
 THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
 
     // rotate object around axis in world space (the axis passes through point)
@@ -151,19 +137,93 @@ THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
 
 }();
 
+/**
+ * Rotation of elements
+ * E.g.
+ * U moves for corners
+ *      [-1,1,-1] -> [1,1,-1] -> [1,1,1] -> [-1,1,1]
+ * U moves for edges
+ *      [0,1,-1] -> [1,1,0] -> [0,1,1] -> [-1,1,0]
+ * R moves for corners
+ *      
+ */
+
 document.addEventListener('keydown', e => {
     if (e.key.toUpperCase() === 'U') {
         const pieceCoors = layerPieceCoordinates[e.key.toUpperCase()]
 
-        const axis = new THREE.Vector3(0, 1, 0);
+        const axis = new THREE.Vector3(0, -1, 0);
         const point = new THREE.Vector3(0, 0, 0);
         const angle = THREE.MathUtils.degToRad(90);
+        // rotate the selected pieces in UI
         pieceCoors.forEach(([x, y, z]) => {
             cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(point, axis, angle)
         })
         // console.log(pieces)
-        // rotate the selected pieces in UI
         // move around the data in the cubeList
+
+        // rotate corners in U move
+        let [w, x, y, z] = [
+            cubeList[0][2][0],
+            cubeList[2][2][0],
+            cubeList[2][2][2],
+            cubeList[0][2][2]
+        ];
+
+        [
+            cubeList[0][2][0],
+            cubeList[2][2][0],
+            cubeList[2][2][2],
+            cubeList[0][2][2]
+        ] = [z, w, x, y];
+
+        // rotate edges in U move
+        [w, x, y, z] = [
+            cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]
+        ];
+
+        [
+            cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]
+        ] = [z, w, x, y];
+        // rotate(cubeList[1][2][0], cubeList[2][2][1], cubeList[1][2][2], cubeList[0][2][1]);
+        // console.log(cubeList.flat().flat().map(piece => ({ id: piece.cube.uuid })));
+        // console.log(cubeList);
+    } else if (e.key.toUpperCase() === 'R') {
+        const pieceCoors = layerPieceCoordinates[e.key.toUpperCase()]
+
+        const axis = new THREE.Vector3(-1, 0, 0);
+        const point = new THREE.Vector3(0, 0, 0);
+        const angle = THREE.MathUtils.degToRad(90);
+        // rotate the selected pieces in UI
+        pieceCoors.forEach(([x, y, z]) => {
+            cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(point, axis, angle)
+        })
+        // console.log(pieces)
+        // move around the data in the cubeList
+
+        // rotate corners in R move
+        let [w, x, y, z] = [
+            cubeList[2][2][2],
+            cubeList[2][2][0],
+            cubeList[2][0][0],
+            cubeList[2][0][2]
+        ];
+
+        [
+            cubeList[2][2][2],
+            cubeList[2][2][0],
+            cubeList[2][0][0],
+            cubeList[2][0][2]
+        ] = [z, w, x, y];
+
+        // // rotate edges in R move
+        [w, x, y, z] = [
+            cubeList[2][2][1], cubeList[2][1][0], cubeList[2][0][1], cubeList[2][1][2]
+        ];
+
+        [
+            cubeList[2][2][1], cubeList[2][1][0], cubeList[2][0][1], cubeList[2][1][2]
+        ] = [z, w, x, y];
     }
 })
 
