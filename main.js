@@ -26,6 +26,20 @@ const layerAxis = {
     'S': Z_AXIS,
 };
 
+const rotationAxis = {
+    'x': X_AXIS,
+    'y': Y_AXIS,
+    'z': Z_AXIS
+};
+
+const rotationLayers = {
+    // first list contains layers to be rotated clockwise
+    // second list contains layers to be rotated counter clockwise
+    'x': [['R'], ['M', 'L']],
+    'y': [['U'], ['E', 'D']],
+    'z': [['F', 'S'], ['B']],
+}
+
 // pieces of layers
 const layerPieceCoordinates = {
     'U': [
@@ -327,12 +341,29 @@ function moveLayer(layer, clockwise = true) {
     }
 }
 
+function rotateCube(sliceLayer, clockwise = true) {
+    const [clockwiseLayers, antiClockwiseLayers] = rotationLayers[sliceLayer];
+    for (let layer of clockwiseLayers) {
+        moveLayer(layer, clockwise);
+    }
+    for (let layer of antiClockwiseLayers) {
+        moveLayer(layer, !clockwise);
+    }
+}
+
 document.addEventListener('keydown', e => {
     // console.log(e.key.toUpperCase())
     if (Object.keys(layerAxis).some(val => val === e.key.toUpperCase())) {
+
         // console.log('Valid move');
         const upperCaseKey = e.key.toUpperCase();
         moveLayer(upperCaseKey, upperCaseKey !== e.key);
+
+    } else if (Object.keys(rotationAxis).some(val => val === e.key.toLowerCase())) {
+
+        const lowerCaseKey = e.key.toLowerCase();
+        rotateCube(e.key.toLowerCase(), lowerCaseKey === e.key);
+
     } else if (e.key.toUpperCase() === 'Q') {
         scramble();
     }
