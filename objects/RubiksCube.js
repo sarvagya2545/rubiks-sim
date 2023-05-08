@@ -1,0 +1,184 @@
+import * as THREE from 'three';
+import Piece from "./Piece";
+import { rubiksColorsHex, insideColor, layerPieceCoordinates, layerAxis, layerCornerRotations, layerEdgeRotations, rotationLayers, PIECE_SIZE, ORIGIN } from '../constants';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+// create a new method to rotate a face
+THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
+
+    // rotate object around axis in world space (the axis passes through point)
+    // axis is assumed to be normalized
+    // assumes object does not have a rotated parent
+
+    let q = new THREE.Quaternion();
+
+    return function rotateAroundWorldAxis(point, axis, angle) {
+
+        q.setFromAxisAngle(axis, angle);
+
+        this.applyQuaternion(q);
+
+        this.position.sub(point);
+        this.position.applyQuaternion(q);
+        this.position.add(point);
+
+        return this;
+
+    }
+
+}();
+
+export default class RubiksCube {
+    cubeList = [
+        [[], [], []],
+        [[], [], []],
+        [[], [], []]
+    ];
+
+    SCRAMBLE_SIZE = 20;
+
+    constructor(canvasDOMElement) {
+        this.initWorld(canvasDOMElement);
+        this.initCube();
+    }
+
+    initWorld(canvasDOMElement) {
+        // Setup three js scene, camera and renderer
+        this.scene = new THREE.Scene()
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // renderer
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: canvasDOMElement
+        });
+
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        this.camera.position.setZ(30);
+        this.renderer.render(this.scene, this.camera);
+
+        // Orbit controls
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    }
+
+    initCube() {
+        for (let x = -1; x <= 1; x++) {
+            for (let y = -1; y <= 1; y++) {
+                for (let z = -1; z <= 1; z++) {
+                    const colorsArray = this.getColorsArray(rubiksColorsHex, insideColor, x, y, z);
+                    const piece = new Piece(PIECE_SIZE, colorsArray, insideColor);
+                    piece.setPosition(x * PIECE_SIZE, y * PIECE_SIZE, z * PIECE_SIZE);
+
+                    this.scene.add(piece.cube);
+                    this.cubeList[x + 1][y + 1][z + 1] = piece;
+                }
+            }
+        }
+    }
+
+    // function to remove invisible inside colors from the piece
+    getColorsArray(rubiksColorsHex, insideColor, x, y, z) {
+        // +x => R, -x => L
+        // +y => U, -y => D
+        // +z => F, -z => B
+        // [R, L, U, D, F, B]
+        const colors = [...rubiksColorsHex];
+        if (x >= 0) colors[1] = insideColor;
+        if (x <= 0) colors[0] = insideColor;
+
+        if (y >= 0) colors[3] = insideColor;
+        if (y <= 0) colors[2] = insideColor;
+
+        if (z >= 0) colors[5] = insideColor;
+        if (z <= 0) colors[4] = insideColor;
+
+        return colors;
+    }
+
+    // Function to move a layer in either clockwise or counter clockwise direction
+    moveLayer(layer, clockwise = true) {
+        const pieceCoors = layerPieceCoordinates[layer]
+
+        const axis = layerAxis[layer];
+        const angle = THREE.MathUtils.degToRad(90 * (clockwise ? -1 : 1));
+        // rotate the selected pieces in UI
+        pieceCoors.forEach(([x, y, z]) => {
+            this.cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(ORIGIN, axis, angle)
+        })
+        // move around the data in the cubeList
+
+        // rotate corners in the layer move
+        const [c1, c2, c3, c4] = layerCornerRotations[layer];
+        let [w, x, y, z] = [
+            this.cubeList[c1[0]][c1[1]][c1[2]],
+            this.cubeList[c2[0]][c2[1]][c2[2]],
+            this.cubeList[c3[0]][c3[1]][c3[2]],
+            this.cubeList[c4[0]][c4[1]][c4[2]]
+        ];
+
+        if (clockwise) {
+            [
+                this.cubeList[c1[0]][c1[1]][c1[2]],
+                this.cubeList[c2[0]][c2[1]][c2[2]],
+                this.cubeList[c3[0]][c3[1]][c3[2]],
+                this.cubeList[c4[0]][c4[1]][c4[2]]
+            ] = [z, w, x, y];
+        } else {
+            [
+                this.cubeList[c1[0]][c1[1]][c1[2]],
+                this.cubeList[c2[0]][c2[1]][c2[2]],
+                this.cubeList[c3[0]][c3[1]][c3[2]],
+                this.cubeList[c4[0]][c4[1]][c4[2]]
+            ] = [x, y, z, w];
+        }
+
+        // rotate edges in layer move
+        const [e1, e2, e3, e4] = layerEdgeRotations[layer];
+        [w, x, y, z] = [
+            this.cubeList[e1[0]][e1[1]][e1[2]],
+            this.cubeList[e2[0]][e2[1]][e2[2]],
+            this.cubeList[e3[0]][e3[1]][e3[2]],
+            this.cubeList[e4[0]][e4[1]][e4[2]]
+        ];
+
+        if (clockwise) {
+            [
+                this.cubeList[e1[0]][e1[1]][e1[2]],
+                this.cubeList[e2[0]][e2[1]][e2[2]],
+                this.cubeList[e3[0]][e3[1]][e3[2]],
+                this.cubeList[e4[0]][e4[1]][e4[2]]
+            ] = [z, w, x, y];
+        } else {
+            [
+                this.cubeList[e1[0]][e1[1]][e1[2]],
+                this.cubeList[e2[0]][e2[1]][e2[2]],
+                this.cubeList[e3[0]][e3[1]][e3[2]],
+                this.cubeList[e4[0]][e4[1]][e4[2]]
+            ] = [x, y, z, w];
+        }
+    }
+
+    // function to rotate the cube orientation
+    rotateCube(sliceLayer, clockwise = true) {
+        const [clockwiseLayers, antiClockwiseLayers] = rotationLayers[sliceLayer];
+        for (let layer of clockwiseLayers) {
+            this.moveLayer(layer, clockwise);
+        }
+
+        for (let layer of antiClockwiseLayers) {
+            this.moveLayer(layer, !clockwise);
+        }
+    }
+
+    // Scramble the cube
+    scramble(scrambleSize) {
+        scrambleSize = scrambleSize ?? this.SCRAMBLE_SIZE;
+        const keys = Object.keys(layerAxis);
+        for (let i = 0; i < scrambleSize; i++) {
+            const randomMoveIndex = Math.floor(Math.random() * keys.length);
+            const randomMove = keys[randomMoveIndex];
+            this.moveLayer(randomMove);
+        }
+    }
+};
