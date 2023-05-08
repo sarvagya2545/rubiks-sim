@@ -2,30 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Piece from './objects/Piece';
 
-let renderer, scene, camera, controls;
-function init() {
-    // Setup three js scene, camera and renderer
-    scene = new THREE.Scene()
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-    // renderer
-    renderer = new THREE.WebGLRenderer({
-        canvas: document.getElementById('bg')
-    });
-
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    camera.position.setZ(30);
-    renderer.render(scene, camera);
-
-    // Orbit controls
-    controls = new OrbitControls(camera, renderer.domElement);
-}
-
-init();
-
-// Constants
+/**************   CONSTANTS    **************/
 const PIECE_SIZE = 3;
 const ORIGIN = new THREE.Vector3(0, 0, 0);
 
@@ -48,6 +25,55 @@ const layerAxis = {
     'E': NEG_Y_AXIS,
     'S': Z_AXIS,
 };
+
+// pieces of layers
+const layerPieceCoordinates = {
+    'U': [
+        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
+        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
+        [-1, 1, 1], [0, 1, 1], [1, 1, 1]
+    ],
+    'D': [
+        [-1, -1, -1], [0, -1, -1], [1, -1, -1],
+        [-1, -1, 0], [0, -1, 0], [1, -1, 0],
+        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
+    ],
+    'R': [
+        [1, -1, -1], [1, 0, -1], [1, 1, -1],
+        [1, -1, 0], [1, 0, 0], [1, 1, 0],
+        [1, -1, 1], [1, 0, 1], [1, 1, 1]
+    ],
+    'L': [
+        [-1, -1, -1], [-1, 0, -1], [-1, 1, -1],
+        [-1, -1, 0], [-1, 0, 0], [-1, 1, 0],
+        [-1, -1, 1], [-1, 0, 1], [-1, 1, 1]
+    ],
+    'F': [
+        [-1, 1, 1], [0, 1, 1], [1, 1, 1],
+        [-1, 0, 1], [0, 0, 1], [1, 0, 1],
+        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
+    ],
+    'B': [
+        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
+        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
+        [-1, -1, -1], [0, -1, -1], [1, -1, -1]
+    ],
+    'M': [
+        [0, -1, -1], [0, 0, -1], [0, 1, -1],
+        [0, -1, 0], [0, 0, 0], [0, 1, 0],
+        [0, -1, 1], [0, 0, 1], [0, 1, 1]
+    ],
+    'E': [
+        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
+        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
+        [-1, 0, 1], [0, 0, 1], [1, 0, 1]
+    ],
+    'S': [
+        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
+        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
+        [-1, -1, 0], [0, -1, 0], [1, -1, 0]
+    ],
+}
 
 const layerCornerRotations = {
     'U': [
@@ -150,61 +176,36 @@ const rubiksColorsHex = [
 ];
 const insideColor = 0x000000;
 
+/**************   INITIALIZE THREE JS CONTROLS    **************/
+let renderer, scene, camera, controls;
+function init() {
+    // Setup three js scene, camera and renderer
+    scene = new THREE.Scene()
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    // renderer
+    renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('bg')
+    });
+
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    camera.position.setZ(30);
+    renderer.render(scene, camera);
+
+    // Orbit controls
+    controls = new OrbitControls(camera, renderer.domElement);
+}
+
+init();
+
 // initialize 3x3 cube
 const cubeList = [
     [[], [], []],
     [[], [], []],
     [[], [], []]
 ];
-
-// pieces of layers
-const layerPieceCoordinates = {
-    'U': [
-        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
-        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
-        [-1, 1, 1], [0, 1, 1], [1, 1, 1]
-    ],
-    'D': [
-        [-1, -1, -1], [0, -1, -1], [1, -1, -1],
-        [-1, -1, 0], [0, -1, 0], [1, -1, 0],
-        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
-    ],
-    'R': [
-        [1, -1, -1], [1, 0, -1], [1, 1, -1],
-        [1, -1, 0], [1, 0, 0], [1, 1, 0],
-        [1, -1, 1], [1, 0, 1], [1, 1, 1]
-    ],
-    'L': [
-        [-1, -1, -1], [-1, 0, -1], [-1, 1, -1],
-        [-1, -1, 0], [-1, 0, 0], [-1, 1, 0],
-        [-1, -1, 1], [-1, 0, 1], [-1, 1, 1]
-    ],
-    'F': [
-        [-1, 1, 1], [0, 1, 1], [1, 1, 1],
-        [-1, 0, 1], [0, 0, 1], [1, 0, 1],
-        [-1, -1, 1], [0, -1, 1], [1, -1, 1]
-    ],
-    'B': [
-        [-1, 1, -1], [0, 1, -1], [1, 1, -1],
-        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
-        [-1, -1, -1], [0, -1, -1], [1, -1, -1]
-    ],
-    'M': [
-        [0, -1, -1], [0, 0, -1], [0, 1, -1],
-        [0, -1, 0], [0, 0, 0], [0, 1, 0],
-        [0, -1, 1], [0, 0, 1], [0, 1, 1]
-    ],
-    'E': [
-        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
-        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
-        [-1, 0, 1], [0, 0, 1], [1, 0, 1]
-    ],
-    'S': [
-        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
-        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
-        [-1, -1, 0], [0, -1, 0], [1, -1, 0]
-    ],
-}
 
 // function to remove invisible inside colors from the piece
 function getColorsArray(rubiksColorsHex, insideColor, x, y, z) {
@@ -328,12 +329,24 @@ function moveLayer(layer, clockwise = true) {
 
 document.addEventListener('keydown', e => {
     // console.log(e.key.toUpperCase())
-    if (Object.keys(layerAxis).some(val => val == e.key.toUpperCase())) {
+    if (Object.keys(layerAxis).some(val => val === e.key.toUpperCase())) {
         // console.log('Valid move');
         const upperCaseKey = e.key.toUpperCase();
         moveLayer(upperCaseKey, upperCaseKey !== e.key);
+    } else if (e.key.toUpperCase() === 'Q') {
+        scramble();
     }
 })
+
+function scramble() {
+    let scrambleSize = 20;
+    const keys = Object.keys(layerAxis);
+    for (let i = 0; i < scrambleSize; i++) {
+        const randomMoveIndex = Math.floor(Math.random() * keys.length);
+        const randomMove = keys[randomMoveIndex];
+        moveLayer(randomMove);
+    }
+}
 
 // ANIMATION LOOP
 function animate() {
