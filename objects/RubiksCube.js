@@ -1,32 +1,7 @@
 import * as THREE from 'three';
 import Piece from "./Piece";
-import { rubiksColorsHex, insideColor, layerPieceCoordinates, layerAxis, layerCornerRotations, layerEdgeRotations, rotationLayers, PIECE_SIZE, ORIGIN } from '../constants';
+import { rubiksColorsHex, insideColor, layerPieceCoordinates, layerAxis, layerCornerRotations, layerEdgeRotations, rotationLayers, PIECE_SIZE } from '../constants';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
-// create a new method to rotate a face
-THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
-
-    // rotate object around axis in world space (the axis passes through point)
-    // axis is assumed to be normalized
-    // assumes object does not have a rotated parent
-
-    let q = new THREE.Quaternion();
-
-    return function rotateAroundWorldAxis(point, axis, angle) {
-
-        q.setFromAxisAngle(axis, angle);
-
-        this.applyQuaternion(q);
-
-        this.position.sub(point);
-        this.position.applyQuaternion(q);
-        this.position.add(point);
-
-        return this;
-
-    }
-
-}();
 
 export default class RubiksCube {
     cubeList = [
@@ -101,10 +76,10 @@ export default class RubiksCube {
         const pieceCoors = layerPieceCoordinates[layer]
 
         const axis = layerAxis[layer];
-        const angle = THREE.MathUtils.degToRad(90 * (clockwise ? -1 : 1));
         // rotate the selected pieces in UI
         pieceCoors.forEach(([x, y, z]) => {
-            this.cubeList[x + 1][y + 1][z + 1].cube.rotateAroundWorldAxis(ORIGIN, axis, angle)
+            const piece = this.cubeList[x + 1][y + 1][z + 1];
+            piece.rotatePieceAroundWorldAxis(axis, 90 * (clockwise ? -1 : 1));
         })
         // move around the data in the cubeList
 
