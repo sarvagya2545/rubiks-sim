@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Piece from './objects/Piece';
 
-let renderer, scene, camera;
+let renderer, scene, camera, controls;
 function init() {
     // Setup three js scene, camera and renderer
     scene = new THREE.Scene()
@@ -18,6 +18,9 @@ function init() {
 
     camera.position.setZ(30);
     renderer.render(scene, camera);
+
+    // Orbit controls
+    controls = new OrbitControls(camera, renderer.domElement);
 }
 
 init();
@@ -41,6 +44,9 @@ const layerAxis = {
     'L': NEG_X_AXIS,
     'D': NEG_Y_AXIS,
     'B': NEG_Z_AXIS,
+    'M': NEG_X_AXIS,
+    'E': NEG_Y_AXIS,
+    'S': Z_AXIS,
 };
 
 const layerCornerRotations = {
@@ -80,6 +86,26 @@ const layerCornerRotations = {
         [0, 0, 0],
         [2, 0, 0]
     ],
+
+    // corner rotations for slice layers are just slice edge rotations
+    'M': [
+        [1, 0, 0],
+        [1, 2, 0],
+        [1, 2, 2],
+        [1, 0, 2]
+    ],
+    'E': [
+        [0, 1, 0],
+        [0, 1, 2],
+        [2, 1, 2],
+        [2, 1, 0]
+    ],
+    'S': [
+        [0, 2, 1],
+        [2, 2, 1],
+        [2, 0, 1],
+        [0, 0, 1]
+    ],
 };
 
 const layerEdgeRotations = {
@@ -101,7 +127,16 @@ const layerEdgeRotations = {
     'L': [
         [0, 2, 1], [0, 1, 2], [0, 0, 1], [0, 1, 0]
     ],
-
+    // Edge rotations for slice layers is just center rotations
+    'M': [
+        [1, 2, 1], [1, 1, 2], [1, 0, 1], [1, 1, 0]
+    ],
+    'E': [
+        [1, 1, 0], [0, 1, 1], [1, 1, 2], [2, 1, 1]
+    ],
+    'S': [
+        [1, 2, 1], [2, 1, 1], [1, 0, 1], [0, 1, 1]
+    ],
 }
 
 // Rubik's colors matrix
@@ -153,7 +188,22 @@ const layerPieceCoordinates = {
         [-1, 1, -1], [0, 1, -1], [1, 1, -1],
         [-1, 0, -1], [0, 0, -1], [1, 0, -1],
         [-1, -1, -1], [0, -1, -1], [1, -1, -1]
-    ]
+    ],
+    'M': [
+        [0, -1, -1], [0, 0, -1], [0, 1, -1],
+        [0, -1, 0], [0, 0, 0], [0, 1, 0],
+        [0, -1, 1], [0, 0, 1], [0, 1, 1]
+    ],
+    'E': [
+        [-1, 0, -1], [0, 0, -1], [1, 0, -1],
+        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
+        [-1, 0, 1], [0, 0, 1], [1, 0, 1]
+    ],
+    'S': [
+        [-1, 1, 0], [0, 1, 0], [1, 1, 0],
+        [-1, 0, 0], [0, 0, 0], [1, 0, 0],
+        [-1, -1, 0], [0, -1, 0], [1, -1, 0]
+    ],
 }
 
 // function to remove invisible inside colors from the piece
@@ -187,9 +237,6 @@ for (let x = -1; x <= 1; x++) {
         }
     }
 }
-
-// Orbit controls
-const controls = new OrbitControls(camera, renderer.domElement);
 
 // create a new method to rotate a face
 THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
