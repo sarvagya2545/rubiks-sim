@@ -1,5 +1,13 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     margin: 0;
+    font-family: sans-serif;
+    height: 100vh;
 }
 
 canvas {
@@ -7,4 +15,28 @@ canvas {
     top: 0;
     left: 0;
     width: 100vw;
+}
+
+#legend {
+    background-color: white;
+    position: absolute;
+    top: 0;
+    z-index: 10;
+    padding: 1rem;
+}
+
+#legend h1 {
+    margin-bottom: 10px;
+}
+
+.legend-items {
+    list-style: none;
+}
+
+.legend-item {
+    margin-top: 10px;
+}
+
+#arrowCanvas {
+    z-index: 100;
 }

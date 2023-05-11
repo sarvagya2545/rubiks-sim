@@ -31,10 +31,21 @@ export default class RubiksCube {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         this.camera.position.setZ(30);
+        this.camera.position.setY(30);
+        this.camera.position.setX(30);
         this.renderer.render(this.scene, this.camera);
 
         // Orbit controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        // init rays showing front and top of the cube
+        this.axesHelper = new THREE.AxesHelper(15);
+        const blueColor = new THREE.Color(0x0000FF);
+        const redColor = new THREE.Color(0xFF0000);
+        const greenColor = new THREE.Color(0x00FF00);
+        this.axesHelper.setColors(blueColor, redColor, greenColor);
+        this.axesHelper.visible = false;
+        this.scene.add(this.axesHelper);
     }
 
     initCube() {
