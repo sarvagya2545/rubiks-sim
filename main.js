@@ -1,19 +1,25 @@
 import {
+    ORIGIN,
+    X_AXIS,
+    Y_AXIS,
+    Z_AXIS,
     layerAxis,
     rotationAxis
 } from './constants';
 import RubiksCube from './objects/RubiksCube';
 import * as THREE from 'three';
 
+// all the logic for rubiks cube is encapsulated in the RubiksCube class
 const rubiksCube = new RubiksCube(document.getElementById('bg'));
 
-// ---------------------- inset canvas ----------------------
+// Show a little axes reference in the corner of the screen
 const CANVAS_WIDTH = 200;
 const CANVAS_HEIGHT = 200;
 const arrowRenderer = new THREE.WebGLRenderer({ alpha: true }); // clear
 arrowRenderer.setClearColor(0x000000, 0);
 arrowRenderer.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
 
+// add arrow element to the canvas
 const arrowCanvas = document.body.appendChild(arrowRenderer.domElement);
 arrowCanvas.setAttribute('id', 'arrowCanvas');
 arrowCanvas.style.width = CANVAS_WIDTH;
@@ -23,17 +29,15 @@ arrowCanvas.style.bottom = 'auto';
 arrowCanvas.style.left = 'auto';
 arrowCanvas.style.top = '0px';
 arrowCanvas.style.right = '0px';
-arrowCanvas.style.backgroundColor = 'white';
 
 const arrowScene = new THREE.Scene();
 
 const arrowCamera = new THREE.PerspectiveCamera(50, CANVAS_WIDTH / CANVAS_HEIGHT, 1, 1000);
 arrowCamera.up = rubiksCube.camera.up; // important!
 
-const arrowPos = new THREE.Vector3(0, 0, 0);
-arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), arrowPos, 60, 0x0000FF, 20, 10));
-arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), arrowPos, 60, 0xFF0000, 20, 10));
-arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), arrowPos, 60, 0x00FF00, 20, 10));
+arrowScene.add(new THREE.ArrowHelper(X_AXIS, ORIGIN, 60, 0x0000FF, 20, 10));
+arrowScene.add(new THREE.ArrowHelper(Y_AXIS, ORIGIN, 60, 0xFF0000, 20, 10));
+arrowScene.add(new THREE.ArrowHelper(Z_AXIS, ORIGIN, 60, 0x00FF00, 20, 10));
 
 /*************** EVENT LISTENERS ***************/
 
@@ -69,7 +73,8 @@ document.addEventListener('keydown', e => {
     } else if (e.key.toUpperCase() === 'Q') {
         rubiksCube.scramble();
     } else if (e.key.toLowerCase() === 'a') {
-        rubiksCube.axesHelper.visible = !rubiksCube.axesHelper.visible;
+        const toggleArrowHelper = arrowHelper => arrowHelper.visible = !arrowHelper.visible;
+        rubiksCube.arrowHelpers.forEach(toggleArrowHelper)
     } else if (e.key.toLowerCase() === 'h') {
         modal.classList.toggle('visible')
     }

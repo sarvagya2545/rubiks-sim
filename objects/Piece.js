@@ -1,31 +1,6 @@
 import * as THREE from 'three';
 import { ORIGIN } from '../constants';
 
-// create a new method to rotate a face
-THREE.Object3D.prototype.rotateAroundWorldAxis = function () {
-
-    // rotate object around axis in world space (the axis passes through point)
-    // axis is assumed to be normalized
-    // assumes object does not have a rotated parent
-
-    let q = new THREE.Quaternion();
-
-    return function rotateAroundWorldAxis(point, axis, angle) {
-
-        q.setFromAxisAngle(axis, angle);
-
-        this.applyQuaternion(q);
-
-        this.position.sub(point);
-        this.position.applyQuaternion(q);
-        this.position.add(point);
-
-        return this;
-
-    }
-
-}();
-
 class Piece {
     constructor(size, colors, borderColor) {
         this.size = size;
@@ -74,7 +49,22 @@ class Piece {
     }
 
     rotatePieceAroundWorldAxis(axis, angle) {
-        this.cube.rotateAroundWorldAxis(ORIGIN, axis, THREE.MathUtils.degToRad(angle));
+        // rotate object around axis in world space (the axis passes through point)
+        // axis is assumed to be normalized
+        // assumes object does not have a rotated parent
+
+        // convert to radians
+        angle = THREE.MathUtils.degToRad(angle);
+
+        let q = new THREE.Quaternion();
+        q.setFromAxisAngle(axis, angle);
+        const point = ORIGIN
+
+        this.cube.applyQuaternion(q);
+
+        this.cube.position.sub(point);
+        this.cube.position.applyQuaternion(q);
+        this.cube.position.add(point);
     }
 }
 

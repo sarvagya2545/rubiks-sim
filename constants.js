@@ -13,12 +13,14 @@ export const NEG_Y_AXIS = new THREE.Vector3(0, -1, 0);
 export const NEG_Z_AXIS = new THREE.Vector3(0, 0, -1);
 
 export const layerAxis = {
+    // layer moves
     'U': Y_AXIS,
     'R': X_AXIS,
     'F': Z_AXIS,
     'L': NEG_X_AXIS,
     'D': NEG_Y_AXIS,
     'B': NEG_Z_AXIS,
+    // slice moves
     'M': NEG_X_AXIS,
     'E': NEG_Y_AXIS,
     'S': Z_AXIS,

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Piece from "./Piece";
-import { rubiksColorsHex, insideColor, layerPieceCoordinates, layerAxis, layerCornerRotations, layerEdgeRotations, rotationLayers, PIECE_SIZE } from '../constants';
+import { rubiksColorsHex, insideColor, layerPieceCoordinates, layerAxis, layerCornerRotations, layerEdgeRotations, rotationLayers, PIECE_SIZE, X_AXIS, Y_AXIS, Z_AXIS, ORIGIN } from '../constants';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 export default class RubiksCube {
@@ -38,14 +38,17 @@ export default class RubiksCube {
         // Orbit controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-        // init rays showing front and top of the cube
-        this.axesHelper = new THREE.AxesHelper(15);
-        const blueColor = new THREE.Color(0x0000FF);
-        const redColor = new THREE.Color(0xFF0000);
-        const greenColor = new THREE.Color(0x00FF00);
-        this.axesHelper.setColors(blueColor, redColor, greenColor);
-        this.axesHelper.visible = false;
-        this.scene.add(this.axesHelper);
+        // Show the coordinate axes
+        this.arrowHelpers = [
+            new THREE.ArrowHelper(X_AXIS, ORIGIN, 20, 0x0000FF, 5, 2),
+            new THREE.ArrowHelper(Y_AXIS, ORIGIN, 20, 0xFF0000, 5, 2),
+            new THREE.ArrowHelper(Z_AXIS, ORIGIN, 20, 0x00FF00, 5, 2)
+        ];
+
+        this.arrowHelpers.forEach(arrowHelper => {
+            arrowHelper.visible = false;
+            this.scene.add(arrowHelper);
+        });
     }
 
     initCube() {
