@@ -35,6 +35,23 @@ arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), arrowPos, 60, 0
 arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), arrowPos, 60, 0xFF0000, 20, 10));
 arrowScene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), arrowPos, 60, 0x00FF00, 20, 10));
 
+/*************** EVENT LISTENERS ***************/
+
+const helpBtn = document.getElementById('help-btn');
+const modal = document.getElementById('modal');
+
+const closeModal = (e) => {
+    // console.log(e.target);
+    if (e.target.id === 'modal') {
+        modal.classList.remove('visible')
+    }
+}
+
+helpBtn.addEventListener('click', e => {
+    modal.classList.add('visible')
+    modal.addEventListener('click', closeModal);
+})
+
 // keydown event listener to call functions
 document.addEventListener('keydown', e => {
     // console.log(e.key.toUpperCase())
@@ -51,8 +68,10 @@ document.addEventListener('keydown', e => {
 
     } else if (e.key.toUpperCase() === 'Q') {
         rubiksCube.scramble();
-    } else if (e.key.toLowerCase() === 'h') {
+    } else if (e.key.toLowerCase() === 'a') {
         rubiksCube.axesHelper.visible = !rubiksCube.axesHelper.visible;
+    } else if (e.key.toLowerCase() === 'h') {
+        modal.classList.toggle('visible')
     }
 })
 
