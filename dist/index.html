@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Rubik's Cube Sim</title>
+    
+  <script type="module" crossorigin src="/assets/index-7f5b0e91.js"></script>
+  <link rel="stylesheet" href="/assets/index-207f129c.css">
+</head>
+
+<body>
+
+    <canvas id="bg"></canvas>
+    <div id="legend">
+        <h1>Legend</h1>
+        <ul class="legend-items">
+            <li class="legend-item" style="color: Red">Red Axis: TOP</li>
+            <li class="legend-item" style="color: Green">Green Axis: FRONT</li>
+            <li class="legend-item" style="color: Blue">Blue Axis: LEFT</li>
+            <li class="legend-item">Press A to toggle axis helper</li>
+            <li class="legend-item">Press H to get the list of all commands</li>
+        </ul>
+    </div>
+    <button id="help-btn">Need Help?</button>
+    <div class="modal" id="modal">
+        <div class="modal-inside">
+            <h1>Move notations</h1>
+            <p>Use these keys to move</p>
+            <ul id="controls">
+                <li>
+                    Layer Moves: R(right), F(front), U(up), L(left), B(back), D(down)
+                </li>
+                <li>
+                    Slice Moves: S(b/w front & back), M(b/w left & right), E(b/w up & down)
+                </li>
+                <li>
+                    Rotations: X, Y, Z
+                </li>
+                <li>
+                    Clock wise: lowercase r, Counter Clock wise: uppercase R
+                </li>
+                <li>
+                    Press Q to scramble the cube
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+</body>
+
+</html>
