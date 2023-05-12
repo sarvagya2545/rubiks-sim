@@ -2,9 +2,9 @@
 
 This is a simulation of a 3x3 Rubik's Cube in the browser made using Three.js.
 
-![Simulation Image](images/ss-1.png)
-![Sim Image with Scrambled Cube](images/ss-2.png)
-![Sim Image with Axis Helpers](images/ss-3.png)
+![Simulation Image](./images/ss-1.png)
+![Sim Image with Scrambled Cube](./images/ss-2.png)
+![Sim Image with Axis Helpers](./images/ss-3.png)
 
 # Installation and Running the project
 
